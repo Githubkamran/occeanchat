@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OceanChat — Premium Random Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-1: #061c2d;
+      --bg-2: #0b2f45;
+      --bg-3: #123e5f;
+      --surface: rgba(255, 255, 255, 0.88);
+      --surface-soft: rgba(255, 255, 255, 0.72);
+      --text: #0a1a2b;
+      --muted: #5f6f83;
+      --primary: #1d7dfa;
+      --primary-2: #35c4ff;
+      --danger: #e0485e;
+      --success: #0fa968;
+      --border: rgba(255, 255, 255, 0.38);
+      --shadow-lg: 0 22px 60px rgba(5, 18, 36, 0.35);
+      --shadow-md: 0 12px 34px rgba(8, 20, 40, 0.18);
+      --radius-xl: 24px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --tr-fast: 180ms ease;
+      --tr-slow: 350ms ease;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 12% 15%, rgba(53, 196, 255, 0.35), transparent 28%),
+        radial-gradient(circle at 85% 10%, rgba(29, 125, 250, 0.32), transparent 33%),
+        radial-gradient(circle at 45% 95%, rgba(30, 99, 191, 0.25), transparent 30%),
+        linear-gradient(145deg, var(--bg-1), var(--bg-2) 45%, var(--bg-3));
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      position: relative;
+    }
+
+    body::before,
+    body::after {
+      content: '';
+      position: absolute;
+      filter: blur(70px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      width: 40vw;
+      height: 40vw;
+      top: -12vw;
+      left: -12vw;
+      background: rgba(44, 222, 255, 0.24);
+      animation: floatA 10s ease-in-out infinite;
+    }
+
+    body::after {
+      width: 36vw;
+      height: 36vw;
+      right: -10vw;
+      bottom: -14vw;
+      background: rgba(38, 118, 255, 0.24);
+      animation: floatB 12s ease-in-out infinite;
+    }
+
+    @keyframes floatA {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(16px, 20px); }
+    }
+
+    @keyframes floatB {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-20px, -14px); }
+    }
+
+    .screen {
+      display: none;
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(16px, 2.5vw, 28px);
+      z-index: 1;
+      animation: fadeInUp var(--tr-slow);
+      width: min(1120px, 100%);
+      margin: 0 auto;
+    }
+
+    .screen.active { display: flex; }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.99);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .card {
+      width: min(540px, 100%);
+      background: linear-gradient(180deg, var(--surface), var(--surface-soft));
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: clamp(24px, 4vw, 40px);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transform: translateZ(0);
+      transition: transform var(--tr-slow), box-shadow var(--tr-slow);
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 28px 66px rgba(5, 18, 36, 0.4);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(255,255,255,0.25), transparent 45%);
+      pointer-events: none;
+    }
+
+    .logo-mark {
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 14px;
+      border-radius: 16px;
+      background: linear-gradient(140deg, var(--primary-2), var(--primary));
+      display: grid;
+      place-items: center;
+      color: white;
+      font-size: 28px;
+      box-shadow: 0 10px 24px rgba(24, 120, 255, 0.35);
+      position: relative;
+    }
+
+    .logo-mark::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      border: 1px solid rgba(255,255,255,0.45);
+      pointer-events: none;
+    }
+
+    h1, h2 {
+      margin: 0;
+      letter-spacing: -0.02em;
+      color: #071628;
+    }
+
+    h1 { font-size: clamp(30px, 4vw, 42px); font-weight: 800; }
+    h2 { font-size: clamp(24px, 3.2vw, 30px); font-weight: 700; }
+
+    p { color: var(--muted); margin-top: 10px; margin-bottom: 20px; line-height: 1.5; }
+
+    .form-grid { display: grid; gap: 12px; margin-top: 20px; text-align: left; }
+
+    .field-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #3b4f66;
+      margin-bottom: 6px;
+      display: block;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    input, select {
+      width: 100%;
+      height: 46px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(19, 51, 80, 0.18);
+      background: rgba(255, 255, 255, 0.92);
+      color: #10253a;
+      font-size: 14px;
+      outline: none;
+      transition: border-color var(--tr-fast), box-shadow var(--tr-fast), transform var(--tr-fast);
+    }
+
+    input:focus, select:focus {
+      border-color: rgba(29, 125, 250, 0.8);
+      box-shadow: 0 0 0 4px rgba(29, 125, 250, 0.16);
+      transform: translateY(-1px);
+    }
+
+    .btn-row { display: grid; gap: 10px; margin-top: 16px; }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      height: 46px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: transform var(--tr-fast), box-shadow var(--tr-fast), background var(--tr-fast), color var(--tr-fast);
+      width: 100%;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: white;
+      box-shadow: 0 10px 24px rgba(24, 120, 255, 0.35);
+    }
+
+    .btn-primary:hover { box-shadow: 0 14px 28px rgba(24, 120, 255, 0.42); }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.76);
+      border: 1px solid rgba(19, 51, 80, 0.15);
+      color: #14324e;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #dc3f55, #f06777);
+      color: white;
+      box-shadow: 0 10px 20px rgba(221, 73, 96, 0.3);
+    }
+
+    .hero-sub {
+      max-width: 430px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .trusted-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 0;
+    }
+
+    .trusted-chip {
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #194364;
+      border: 1px solid rgba(19, 51, 80, 0.12);
+      background: rgba(255,255,255,0.7);
+    }
+
+    .feature-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1a3958;
+      background: rgba(255,255,255,0.7);
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(19, 51, 80, 0.12);
+      margin-bottom: 12px;
+    }
+
+    .stats-box {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 18px 0 14px;
+    }
+
+    .stat-item {
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(19, 51, 80, 0.12);
+      border-radius: 14px;
+      padding: 12px 8px;
+      text-align: center;
+      color: #30465f;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .stat-item span {
+      display: block;
+      margin-top: 8px;
+      font-size: 24px;
+      color: #0c2b46;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    #view-search {
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      gap: 12px;
+    }
+
+    .search-loader {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.18);
+      border-top-color: rgba(255,255,255,0.95);
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #view-chat {
+      padding: clamp(8px, 2vw, 16px);
+      align-items: stretch;
+      justify-content: stretch;
+    }
+
+    .chat-shell {
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 32px);
+      background: rgba(255,255,255,0.84);
+      border: 1px solid rgba(255,255,255,0.42);
+      border-radius: 24px;
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(15px);
+      overflow: hidden;
+      animation: fadeInUp 260ms ease;
+    }
+
+    .chat-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(19, 51, 80, 0.12);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.64);
+    }
+
+    .incoming-call {
+      display: none;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(19, 51, 80, 0.12);
+      background: rgba(255, 255, 255, 0.88);
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .incoming-call.active {
+      display: flex;
+    }
+
+    .incoming-call span {
+      font-size: 13px;
+      color: #15324f;
+      font-weight: 600;
+    }
+
+    .chat-header h3 {
+      margin: 0;
+      font-size: 17px;
+      color: #0f2d49;
+      font-weight: 700;
+    }
+
+    .chat-actions { display: flex; gap: 8px; }
+
+    .icon-btn {
+      border: 1px solid rgba(19, 51, 80, 0.15);
+      background: rgba(255,255,255,0.86);
+      height: 40px;
+      width: 40px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: transform var(--tr-fast), background var(--tr-fast), box-shadow var(--tr-fast);
+    }
+
+    .icon-btn:hover {
+      transform: translateY(-1px);
+      background: white;
+      box-shadow: var(--shadow-md);
+    }
+
+    .icon-btn.danger { color: #d52e4d; }
+
+    .video-container {
+      display: none;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding: 12px;
+      border-bottom: 1px solid rgba(19, 51, 80, 0.12);
+      background: rgba(11, 33, 55, 0.96);
+    }
+
+    .video-box {
+      background: #020912;
+      border-radius: 14px;
+      min-height: 190px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    video { width: 100%; height: 100%; object-fit: cover; }
+    #localVideo { transform: scaleX(-1); }
+
+    .chat-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background:
+        linear-gradient(180deg, rgba(248, 252, 255, 0.8), rgba(235, 246, 255, 0.72));
+    }
+
+    .msg {
+      max-width: min(76%, 560px);
+      padding: 10px 14px;
+      border-radius: 15px;
+      font-size: 14px;
+      line-height: 1.45;
+      box-shadow: 0 8px 18px rgba(8, 24, 44, 0.08);
+      animation: popIn 180ms ease;
+      word-break: break-word;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(6px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .msg.me {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: white;
+      border-bottom-right-radius: 6px;
+    }
+
+    .msg.them {
+      align-self: flex-start;
+      background: white;
+      color: #15324f;
+      border: 1px solid rgba(19, 51, 80, 0.12);
+      border-bottom-left-radius: 6px;
+    }
+
+    .chat-footer {
+      display: flex;
+      gap: 10px;
+      padding: 12px;
+      border-top: 1px solid rgba(19, 51, 80, 0.12);
+      background: rgba(255,255,255,0.68);
+    }
+
+    .chat-footer input {
+      margin: 0;
+      height: 46px;
+      border-radius: 12px;
+      flex: 1;
+      background: white;
+    }
+
+    .chat-footer .btn-primary {
+      width: auto;
+      padding: 0 18px;
+      white-space: nowrap;
+      height: 46px;
+    }
+
+    @media (max-width: 860px) {
+      .chat-shell { min-height: calc(100vh - 18px); border-radius: 18px; }
+      .video-container { grid-template-columns: 1fr; }
+      .video-box { min-height: 150px; }
+    }
+
+    @media (max-width: 640px) {
+      .card { padding: 20px; border-radius: 18px; }
+      .stats-box { grid-template-columns: 1fr; }
+      .chat-header { padding: 10px 12px; }
+      .chat-body { padding: 10px; }
+      .chat-footer { padding: 10px; }
+      .msg { max-width: 88%; }
+      .icon-btn { width: 36px; height: 36px; border-radius: 10px; }
+      .trusted-row { gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="view-landing" class="screen active">
+    <div class="card">
+      <div class="logo-mark">🌊</div>
+      <span class="feature-pill">Secure • Fast • Anonymous</span>
+      <h1>OceanChat</h1>
+      <p class="hero-sub">Meet real people instantly. Clean experience, private identity, and smooth conversations in one premium chat space.</p>
+      <div class="trusted-row">
+        <span class="trusted-chip">Startup-grade UI</span>
+        <span class="trusted-chip">Realtime matching</span>
+        <span class="trusted-chip">WebRTC calls</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="nav('view-register-1')">Create Account</button>
+        <button class="btn btn-ghost" onclick="nav('view-login')">Sign In</button>
+        <button class="btn btn-ghost" onclick="nav('view-guest')">Continue as Guest</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-login" class="screen">
+    <div class="card">
+      <div class="logo-mark">🔐</div>
+      <h2>Welcome Back</h2>
+      <p>Sign in to continue chatting with your saved profile preferences.</p>
+      <div class="form-grid">
+        <div>
+          <label class="field-label" for="loginUser">Username</label>
+          <input type="text" id="loginUser" placeholder="Enter your username" />
+        </div>
+        <div>
+          <label class="field-label" for="loginPass">Password</label>
+          <input type="password" id="loginPass" placeholder="Enter password" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="submitLogin()">Enter Home</button>
+        <button class="btn btn-ghost" onclick="nav('view-landing')">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-register-1" class="screen">
+    <div class="card">
+      <div class="logo-mark">✨</div>
+      <h2>Create Account</h2>
+      <p>Choose a unique username and secure password to get started.</p>
+      <div class="form-grid">
+        <div>
+          <label class="field-label" for="regUser">Username</label>
+          <input type="text" id="regUser" placeholder="Must be unique" />
+        </div>
+        <div>
+          <label class="field-label" for="regPass">Password</label>
+          <input type="password" id="regPass" placeholder="Choose password" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="checkUniqueUser()">Next</button>
+        <button class="btn btn-ghost" onclick="nav('view-landing')">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-register-2" class="screen">
+    <div class="card">
+      <div class="logo-mark">🧭</div>
+      <h2>Profile Details</h2>
+      <p>Set your chat preferences for better random matching.</p>
+      <div class="form-grid">
+        <div>
+          <label class="field-label" for="regAge">Age</label>
+          <input type="number" id="regAge" placeholder="Your age" required />
+        </div>
+        <div>
+          <label class="field-label" for="regGender">Your Gender</label>
+          <select id="regGender">
+            <option value="" disabled selected>Select gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="regTargetGender">Want to talk with</label>
+          <select id="regTargetGender">
+            <option value="" disabled selected>Select preference</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="any">Anyone</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="regRegion">Region (optional)</label>
+          <input type="text" id="regRegion" placeholder="City / Country" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="submitRegister()">Create + Enter Home</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-guest" class="screen">
+    <div class="card">
+      <div class="logo-mark">👤</div>
+      <h2>Guest Setup</h2>
+      <p>Jump right in with a temporary profile.</p>
+      <div class="form-grid">
+        <div>
+          <label class="field-label" for="guestName">Display name</label>
+          <input type="text" id="guestName" placeholder="Temporary name" />
+        </div>
+        <div>
+          <label class="field-label" for="guestGender">Your Gender</label>
+          <select id="guestGender">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="guestTarget">Talk to</label>
+          <select id="guestTarget">
+            <option value="any">Anyone</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="submitGuest()">Enter Home</button>
+        <button class="btn btn-ghost" onclick="nav('view-landing')">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-home" class="screen">
+    <div class="card" style="max-width: 700px;">
+      <div class="logo-mark">💬</div>
+      <h2>Welcome, <span id="homeName"></span>!</h2>
+      <p>Find a random stranger instantly based on your selected preferences.</p>
+      <div class="stats-box">
+        <div class="stat-item">Total Active<span id="statTotal">0</span></div>
+        <div class="stat-item">Male<span id="statMale">0</span></div>
+        <div class="stat-item">Female<span id="statFemale">0</span></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="startSearch()">💬 Start Chat</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-search" class="screen">
+    <div class="search-loader"></div>
+    <h2>Finding your match...</h2>
+    <p>Hang tight, we're connecting you to someone now.</p>
+  </div>
+
+  <div id="view-chat" class="screen">
+    <div class="chat-shell">
+      <div class="chat-header">
+        <div style="flex:1;">
+          <h3 id="chatPartnerName">Connecting...</h3>
+          <div id="incomingCallBanner" class="incoming-call">
+            <span id="incomingCallText">Incoming call...</span>
+            <button class="btn btn-primary" style="width:auto;height:36px;padding:0 14px;" onclick="acceptIncomingCall()">Accept</button>
+          </div>
+        </div>
+        <div class="chat-actions">
+          <button class="icon-btn" onclick="startCall('audio')" title="Audio Call">📞</button>
+          <button class="icon-btn" onclick="startCall('video')" title="Video Call">📹</button>
+          <button class="icon-btn danger" onclick="disconnectChat()" title="Disconnect">✖</button>
+        </div>
+      </div>
+
+      <div class="video-container" id="videoContainer">
+        <div class="video-box"><video id="localVideo" autoplay playsinline muted></video></div>
+        <div class="video-box"><video id="remoteVideo" autoplay playsinline></video></div>
+      </div>
+
+      <div class="chat-body" id="chatMessages"></div>
+
+      <div class="chat-footer">
+        <input type="text" id="msgInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMsg()" />
+        <button class="btn btn-primary" onclick="sendMsg()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-disconnect" class="screen">
+    <div class="card">
+      <div class="logo-mark">🧩</div>
+      <h2>Chat Ended</h2>
+      <p id="dcMessage">User disconnected.</p>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="startSearch()">🎲 Random Connect</button>
+        <button class="btn btn-ghost" id="reconnectBtn" onclick="reconnect()">🔄 Reconnect with <span id="lastPartner"></span></button>
+        <button class="btn btn-danger" onclick="nav('view-home')">Go Home</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let myData = {};
+    let lastPartnerId = null;
+    let lastPartnerName = '';
+    let pendingOfferData = null;
+    let pendingIceCandidates = [];
+    let localStream;
+    let peerConnection;
+    const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
+    function nav(screenId) {
+      document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    function setHome(name) {
+      myData.username = name;
+      document.getElementById('homeName').innerText = name;
+      nav('view-home');
+    }
+
+    function checkUniqueUser() {
+      const user = document.getElementById('regUser').value.trim();
+      const pass = document.getElementById('regPass').value;
+      if (!user || !pass) return alert('Username and password required');
+
+      socket.emit('checkUsername', user, (res) => {
+        if (res.success) {
+          myData.username = user;
+          myData.password = pass;
+          nav('view-register-2');
+        } else {
+          alert(res.message);
+        }
+      });
+    }
+
+    function submitRegister() {
+      const payload = {
+        username: myData.username,
+        password: myData.password,
+        age: Number(document.getElementById('regAge').value || 0),
+        gender: document.getElementById('regGender').value,
+        targetGender: document.getElementById('regTargetGender').value,
+        region: document.getElementById('regRegion').value.trim(),
+      };
+      if (!payload.gender || !payload.targetGender || !payload.username || !payload.password) {
+        return alert('Fill mandatory fields');
+      }
+
+      socket.emit('registerAccount', payload, (res) => {
+        if (!res.success) return alert(res.message);
+        socket.emit('loginAccount', { username: payload.username, password: payload.password }, (loginRes) => {
+          if (!loginRes.success) return alert(loginRes.message);
+          myData = { ...loginRes.profile, type: 'registered' };
+          socket.emit('login', myData);
+          setHome(payload.username);
+        });
+      });
+    }
+
+    function submitLogin() {
+      const username = document.getElementById('loginUser').value.trim();
+      const password = document.getElementById('loginPass').value;
+      if (!username || !password) return alert('Username and password required');
+
+      socket.emit('loginAccount', { username, password }, (res) => {
+        if (!res.success) return alert(res.message);
+        myData = { ...res.profile, type: 'registered' };
+        socket.emit('login', myData);
+        setHome(myData.username);
+      });
+    }
+
+    function submitGuest() {
+      myData = {
+        username: document.getElementById('guestName').value.trim() || 'Guest' + Math.floor(Math.random() * 1000),
+        gender: document.getElementById('guestGender').value,
+        targetGender: document.getElementById('guestTarget').value,
+        type: 'guest',
+      };
+
+      socket.emit('login', myData);
+      setHome(myData.username);
+    }
+
+    socket.on('stats', (data) => {
+      document.getElementById('statTotal').innerText = data.total;
+      document.getElementById('statMale').innerText = data.male;
+      document.getElementById('statFemale').innerText = data.female;
+    });
+
+    socket.on('authError', (data) => {
+      alert(data.message || 'Authentication required.');
+      nav('view-login');
+    });
+
+    function startSearch() {
+      stopWebRTC();
+      nav('view-search');
+      socket.emit('findMatch');
+    }
+
+    socket.on('matched', (data) => {
+      lastPartnerId = data.partnerId;
+      lastPartnerName = data.partnerName;
+      pendingOfferData = null;
+      hideIncomingCallBanner();
+      document.getElementById('chatPartnerName').innerText = data.partnerName;
+      document.getElementById('chatMessages').innerHTML = '';
+      nav('view-chat');
+    });
+
+    function disconnectChat() {
+      stopWebRTC();
+      socket.emit('leaveChat');
+      showDisconnectScreen('You left the chat.');
+    }
+
+    socket.on('partnerDisconnected', (data) => {
+      stopWebRTC();
+      showDisconnectScreen(`${data.partnerName} left the chat.`);
+    });
+
+    function showDisconnectScreen(msg) {
+      pendingOfferData = null;
+      hideIncomingCallBanner();
+      document.getElementById('dcMessage').innerText = msg;
+      document.getElementById('lastPartner').innerText = lastPartnerName || 'that user';
+      nav('view-disconnect');
+    }
+
+    function reconnect() {
+      if (!lastPartnerId) return alert('No previous partner available.');
+      socket.emit('reconnectTo', lastPartnerId, (res) => {
+        if (!res.success) alert(res.message);
+      });
+    }
+
+    function sendMsg() {
+      const input = document.getElementById('msgInput');
+      if (!input.value.trim()) return;
+
+      addMsgToDOM(input.value, 'me');
+      socket.emit('message', { text: input.value });
+      input.value = '';
+    }
+
+    socket.on('message', (msg) => addMsgToDOM(msg.text, 'them'));
+
+    function addMsgToDOM(text, sender) {
+      const div = document.createElement('div');
+      div.className = `msg ${sender}`;
+      div.innerText = text;
+      const container = document.getElementById('chatMessages');
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    async function startCall(type) {
+      document.getElementById('videoContainer').style.display = 'grid';
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: type === 'video', audio: true });
+        document.getElementById('localVideo').srcObject = localStream;
+        setupWebRTC();
+
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        socket.emit('webrtc-signal', { type: 'offer', offer, mediaType: type });
+      } catch (_) {
+        alert('Camera/Mic access denied.');
+      }
+    }
+
+    function setupWebRTC() {
+      peerConnection = new RTCPeerConnection(rtcConfig);
+
+      if (localStream) {
+        localStream.getTracks().forEach((track) => peerConnection.addTrack(track, localStream));
+      }
+
+      peerConnection.ontrack = (event) => {
+        document.getElementById('videoContainer').style.display = 'grid';
+        document.getElementById('remoteVideo').srcObject = event.streams[0];
+      };
+
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit('webrtc-signal', { type: 'candidate', candidate: event.candidate });
+        }
+      };
+    }
+
+    socket.on('webrtc-signal', async (data) => {
+      try {
+        if (!peerConnection) setupWebRTC();
+
+        if (data.type === 'offer') {
+          pendingOfferData = data;
+          showIncomingCallBanner(data.mediaType === 'video' ? 'Incoming video call...' : 'Incoming audio call...');
+        } else if (data.type === 'answer') {
+          await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+          await flushPendingIceCandidates();
+        } else if (data.type === 'candidate') {
+          if (!peerConnection.remoteDescription) {
+            pendingIceCandidates.push(data.candidate);
+            return;
+          }
+          await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+        }
+      } catch (_) {
+        // Keep chat stable even if one signaling message fails.
+      }
+    });
+
+    async function flushPendingIceCandidates() {
+      while (pendingIceCandidates.length > 0) {
+        const candidate = pendingIceCandidates.shift();
+        await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+      }
+    }
+
+    function showIncomingCallBanner(message) {
+      const banner = document.getElementById('incomingCallBanner');
+      document.getElementById('incomingCallText').innerText = message;
+      banner.classList.add('active');
+    }
+
+    function hideIncomingCallBanner() {
+      document.getElementById('incomingCallBanner').classList.remove('active');
+    }
+
+    async function acceptIncomingCall() {
+      if (!pendingOfferData) return;
+
+      const data = pendingOfferData;
+      hideIncomingCallBanner();
+      document.getElementById('videoContainer').style.display = 'grid';
+
+      if (!peerConnection) setupWebRTC();
+
+      if (!localStream) {
+        const wantsVideo = data.mediaType === 'video';
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: wantsVideo,
+          audio: true,
+        });
+        document.getElementById('localVideo').srcObject = localStream;
+        localStream.getTracks().forEach((track) => peerConnection.addTrack(track, localStream));
+      }
+
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+      await flushPendingIceCandidates();
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      socket.emit('webrtc-signal', { type: 'answer', answer });
+      pendingOfferData = null;
+    }
+
+    function stopWebRTC() {
+      if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+      }
+      if (localStream) {
+        localStream.getTracks().forEach((t) => t.stop());
+        localStream = null;
+      }
+      document.getElementById('localVideo').srcObject = null;
+      document.getElementById('remoteVideo').srcObject = null;
+      document.getElementById('videoContainer').style.display = 'none';
+      hideIncomingCallBanner();
+      pendingOfferData = null;
+      pendingIceCandidates = [];
+    }
+  </script>
+</body>
+</html>

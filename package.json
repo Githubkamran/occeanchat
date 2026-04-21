@@ -1,0 +1,21 @@
+{
+  "name": "occeanchat",
+  "version": "1.0.0",
+  "description": "Random anonymous chat with text and WebRTC audio/video",
+  "main": "server.js",
+  "scripts": {
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate",
+    "start": "npm run db:generate && npm run db:push && node server.js",
+    "check": "node --check server.js",
+    "screenshot": "node tools/screenshot.mjs",
+    "screenshot:install": "npm i -D playwright && npx playwright install chromium"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.6.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "prisma": "^6.6.0",
+    "socket.io": "^4.8.1"
+  }
+}
